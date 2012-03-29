@@ -5,15 +5,22 @@ require 'twitter'
 require 'highline/import'
 
 puts
-header = "Who unfollowed me on twitter?"
+header = "Who unfollowed this user on twitter?"
 puts header
 puts "=" * header.length
 puts
 
 username = ask("Username: ") {|q| q.default = "michalvalasek" }
+filename = "storage/#{username}.txt"
+if File.exists?(filename)
+  modtime = File.mtime(filename)
+  puts "Last save: #{modtime}"
+else
+  puts "Nothing saved yet for this username"
+end
 save_state = ['Y','y'].include? ask("Save current state? [y/N] ")
 
-archive_file = File.open("storage/#{username}.txt",'a+')
+archive_file = File.open(filename,'a+')
 
 begin
   last_followerIds = Marshal.load archive_file.read
@@ -41,7 +48,7 @@ archive_file.close
 
 unfollowed = last_followerIds - followerIds
 if unfollowed.empty?
-  puts "\nNobody unfollowed you since last save."
+  puts "\nNobody unfollowed since last save."
 else
   puts "\nUnfollowed by:"
   unfollowed.each { |i| u = Twitter.user(i); puts "@#{u.screen_name} - #{u.name}" }
